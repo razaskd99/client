@@ -10,6 +10,8 @@ if (process.env.NODE_ENV == "production") {
   bakend = "https://bidsforce-server.vercel.app/";
 }
 
+bakend = "https://server-ten-mu-65.vercel.app/";
+
 
 const nextConfig = {
 
