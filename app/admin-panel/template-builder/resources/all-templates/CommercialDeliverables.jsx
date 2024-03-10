@@ -37,13 +37,13 @@ export default function CommercialDeliverables(editor) {
         }
     </style>
     
-    <div class="mx-auto max-w-7xl px-4 mt-8 ">
+    <div class="mx-auto max-w-7xl px-4 mt-8 dyn-template ">
         <!-- Main Heading -->
-        <span class="text-2xl font-bold mb-4 template-heading-color">Template:Commercial Deliverables</span>
+        <span class="text-2xl font-md mb-4 template-heading-color">Template:Commercial Deliverables</span>
         <div class="container mx-auto px-4 py-2 custome-color-card mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black ">Basic Of Proposal</h1>
+                    <h1 class="text-lg font-medium text-black ">Basic Of Proposal</h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -73,7 +73,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">Executive Summary</h1>
+                    <h1 class="text-lg font-medium text-black">Executive Summary</h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -103,7 +103,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">Table Of Content</h1>
+                    <h1 class="text-lg font-medium text-black">Table Of Content</h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -132,7 +132,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">Commercial Schedule
+                    <h1 class="text-lg font-medium text-black">Commercial Schedule
                     </h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
@@ -162,7 +162,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">RFX Compliance and Deviation
+                    <h1 class="text-lg font-medium text-black">RFX Compliance and Deviation
                     </h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
@@ -192,7 +192,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">T&Cs Deviations
+                    <h1 class="text-lg font-medium text-black">T&Cs Deviations
                     </h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
@@ -222,7 +222,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">Bank Guarantee Formats </h1>
+                    <h1 class="text-lg font-medium text-black">Bank Guarantee Formats </h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -251,7 +251,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">Spare Parts Price List</h1>
+                    <h1 class="text-lg font-medium text-black">Spare Parts Price List</h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -280,7 +280,7 @@ export default function CommercialDeliverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black">Un-Prices Commercial Proposal</h1>
+                    <h1 class="text-lg font-medium text-black">Un-Prices Commercial Proposal</h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-between">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">

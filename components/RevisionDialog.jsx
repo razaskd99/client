@@ -39,7 +39,7 @@ const RevisionDialog = ({ open, handleClose, onYesClick, rfxID, tenantID, apiBac
   
 
   const handleSubmitRevision = async () => {
-
+console.log(selectedIDList)
     if (selectedIDList.length == 0) {
       alert("Please select a bid clarification for revision.");
     } else if (!notes || !dueDate) {
@@ -136,7 +136,7 @@ const RevisionDialog = ({ open, handleClose, onYesClick, rfxID, tenantID, apiBac
   const handleChangeCheckBox = (id)=> {
     
     if (selectedIDList.includes(id)) {
-      setSelectedIDList(selectedIDList.filter((item) => item !== id));
+      setSelectedIDList(selectedIDList.filter((item) => item === id));
     } else {
       setSelectedIDList([...selectedIDList, id]);
     }

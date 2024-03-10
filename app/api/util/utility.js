@@ -41,6 +41,15 @@ export const generateUniqueSixDigitNumber =()=> {
   return uniqueSixDigitNumber;
 }
 
+export const generateBidOrderNumber = () => {
+  const timestamp = new Date().getTime();
+  const seed = timestamp % 10000000; // Use the last 7 digits of the timestamp
+  const randomComponent = Math.floor(seed + Math.random() * (100000000 - seed));
+  const uniqueEightDigitNumber = randomComponent % 100000000; // Ensure it is 8 digits
+  return uniqueEightDigitNumber;
+};
+
+
 
 export const formatFileSize = (sizeInBytes) => {
     const KB = 1024;

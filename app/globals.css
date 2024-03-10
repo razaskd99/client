@@ -10,17 +10,27 @@
   text-decoration: none;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: auto;
   min-height: 100%;
- }
- .date-picker>div>div{
+}
+
+.date-picker>div>div {
   width: 100%;
- }
- .search-table .MuiDataGrid-cell:focus, .data-table .MuiDataGrid-cell:focus{outline: none !important;}
-.search-table .MuiDataGrid-virtualScroller{min-height: 600px;}
+}
+
+.search-table .MuiDataGrid-cell:focus,
+.data-table .MuiDataGrid-cell:focus {
+  outline: none !important;
+}
+
+.search-table .MuiDataGrid-virtualScroller {
+  min-height: 600px;
+}
+
 /* width */
 .scrollbar::-webkit-scrollbar {
   width: 5px;
@@ -41,7 +51,20 @@ html, body {
 .scrollbar::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
- /* 
+
+.dyn-template .text-xl.font-bold.text-black{
+  font-weight: 400 !important;
+  font-size: 16px;
+
+}
+
+.dyn-template .custome-color-card {
+  box-shadow: 0px 5px 5px -1px rgba(199, 199, 199, 0.39);
+  -webkit-box-shadow: 0px 5px 5px -1px rgba(199, 199, 199, 0.39);
+  -moz-box-shadow: 0px 5px 5px -1px rgba(199, 199, 199, 0.39);
+}
+
+/* 
 .login{
   border-radius: 4px;
 background: #FFF;

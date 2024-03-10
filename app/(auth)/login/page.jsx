@@ -76,7 +76,7 @@ const Login = async () => {
   return tenantStatus ? (
     <LoginForm tenantID={serverRuntimeConfig.TENANT_ID} />
   ) : (
-    <InvalidTenant msg={tenantStatusMsg} tenantDomain={tenantDomain} />
+    <InvalidTenant msg={tenantStatusMsg} />
   );
 };
 

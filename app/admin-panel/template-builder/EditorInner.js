@@ -1098,7 +1098,7 @@ const openStyleMangerLayer = () => {
 const amendBuildersLayout = () => {
   var elem = document.createElement("img");
   elem.id += "plogo";
-  elem.src += "./images/cumulus-setting-icon.png";
+  elem.src += "../setting-icon.png";
   elem.className += "plogo";
   elem.style.cssText =
     "position:absolute;width:50px;height:50px;padding:0px;border:0px;opacity:1;z-index:1234;top:0px;left:10px;object-fit:contain;text-align:center;";

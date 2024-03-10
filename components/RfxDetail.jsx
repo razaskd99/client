@@ -25,7 +25,7 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 
-import { formatDatetime, formatDateString, generateUniqueSixDigitNumber } from '@/app/api/util/utility';
+import { formatDatetime, formatDateString, generateUniqueSixDigitNumber, generateBidOrderNumber } from '@/app/api/util/utility';
 import { movetoNextStageAction } from '@/app/api/rfx/stages';
 import { updateBidAssignToAction, updateBidNumberAction, getAllRfxStagesByRfxIdAction } from '@/app/api/rfx/actions/rfx';
 import SearchTableNew from './SearchTableNew';
@@ -42,9 +42,10 @@ import ContactDialog from './ContactPopup1';
 import { getSubmissionPostsBySubIdAction, createSubmissionPostAction } from '@/app/api/manager/actions/bidsubmission';
 import {getAllBidOrderAction,  createBidOrderAction, getBidOrderByIdAction, createBidOrderPostAction, getBidOrderPostsByBidOrderIdAction } from '@/app/api/manager/actions/bidorder';
 import { createContactsAction } from '@/app/api/rfx/actions/rfx';
-import { currencyFormatter } from '@/app/api/util/utility';
 import RevisionDialog from './RevisionDialog';
-import SubmissionDialog from './SubmissionDialog';
+import SubmissionDialogRfx from './SubmissionDailogRfx';
+import { getBidSubmissionAckBySubIdAction } from '@/app/api/manager/actions/bidsubmissionack';
+import { Rowing } from '@mui/icons-material';
 
 
 const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, tenantID, keyContactsRec, assigntoRec, initiatorRec, allUsersRec, clarificationRec, submissionRec, bidClarifRec, bidOrderRec }) => {
@@ -118,6 +119,7 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
     );
     const [bidOrderSelectedDocuments, setBidOrderSelectedDocuments] = useState([])
     const [bidOrderSelectedRow, setBidOrderSelectedRow] = useState({})
+    const [bidOrderAcknowledgedBy, setBidOrderAcknowledgedBy] = useState({})
     const [bidOrderSelectedContacts, setBidOrderSelectedContacts] = useState([])
 
 
@@ -175,6 +177,9 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
     const [selectedSubmissionSubmittedBy, setSelectedSubmissionSubmittedBy] = useState({})
     const [submissionReplyText, setSubmissionReplyText] = useState('')
     const [submissionPostList, setSubmissionPostList] = useState([])
+    const [submissionAcknowledgement, setSubmissionAcknowledgement] = useState({})
+    const [bidSubAssignto, setBidSubAssignto] = useState({})
+    const [submissionSubmittedBy, setSubmissionSubmittedBy] = useState({})
     const [bidClarificationTitle, setBidClarificationTitle] = useState('')
     const [bidClarificationType, setBidClarificationType] = useState('')
     const [bidClarificationRefNumber, setBidClarificationRefNumber] = useState('')
@@ -194,6 +199,7 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
     const [selectedOrderContact, setSelectedOrderContacts] = useState([])
     const [openRevisionDailog, setOpenRevisionDailog] = useState(false)
     const [openOrderContactAssign, setOpenOrderContactAssign] = useState(false)
+    const [openSubmissionDailog, setOpenSubmissionDailog] = useState(false)
 
     const [bidClarificationSelectedRow, setBidClarificationSelectedRow] = useState([])
 
@@ -235,7 +241,10 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
     }, []);
     const handleOrderContactSelect = (contact) => {
         console.log("CNT", contact)
-        setSelectedOrderContacts((prevContacts) => [...prevContacts, contact])
+        const currentContact = selectedOrderContact.find(c => c.id === contact.id);
+        if(!currentContact){
+            setSelectedOrderContacts((prevContacts) => [...prevContacts, contact])
+        }
         setOrderContactDailog(false);
     };
 
@@ -332,8 +341,11 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
     const handleClickOpen = () => {
         setOpen(true);
     };
-    const handleDocClickOpen = () => {
-        setDocDailog(true);
+    const handleSubmissionDailog = () => {
+        setOpenSubmissionDailog(true);
+    }
+    const handleCloseSubmissionDailog = () => {
+        setOpenSubmissionDailog(false);
     }
     const handleClickOpenBid = () => {
         setOpenBid(true);
@@ -452,6 +464,16 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
             if (r4.statusCode == 200) {
                 setSubmissionPostList(r4.returnData)
             }
+            // get submission acknowledgement
+            let r5 = await getBidSubmissionAckBySubIdAction(rowId)
+            setSubmissionAcknowledgement(r5.returnData)
+            // get assign_to details
+            let r6 = await getUserById(targetSubmission.assign_to_id)
+            setBidSubAssignto(r6.data)     
+            // get submission submitted_by user
+            let r7 = await getUserById(targetSubmission.submitted_by)
+            setSubmissionSubmittedBy(r7.data)       
+            
         }
         if (active == 'Bid Clarifications') {
             setBidDetailInfo(true)
@@ -512,6 +534,9 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
             const r3 = await getRfxContactsByKey(rfxRecord.rfx_id, 'bid-order-' + bid_order_id)
             const contrec = r3.rfxData
             setBidOrderSelectedContacts(contrec)
+            // get bid order acknowledgement_by
+            let r4 = await getUserById(r0.returnData.acknowledged_by)
+            setBidOrderAcknowledgedBy(r4.data)
             
         }
         if (active == 'Bid Revision') {
@@ -686,16 +711,11 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
         // get clarif post documents
         const r4 = await GetRfxDocumentsAction(rfxRecord.rfx_id)
         setRfxClarPostDocsRows(r4.returnData)
-
-        /*const newMessage = {
-            text: replyMessage,
-            files: uploadedFiles
-        };
-        setMessages([...messages, newMessage]);
-        console.log("RFX DET", messages)*/
+        
         setReplyMessage('');
         setUploadedFiles([]);
         setShowReply(false);
+        setSelectedFilesMain([]);
     };
 
     const handleSubmissionReplySubmit = async () => {
@@ -833,7 +853,7 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
             "assign_to": orderAssignedTo.id,
             "acknowledged_by": 0,
             "acknowledgement_document": 0,
-            "bid_order_num": '',
+            "bid_order_num": 'PO' + generateBidOrderNumber(),
             "title": purchaseOrder,
             "currency": orderCurrency,
             "order_value": orderValue ? orderValue : 0,
@@ -1378,7 +1398,7 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
                                 <div className="border mb-3 rounded-md mt-4 ">
                                     <div className="bg-[#00000005] py-2 px-[14px] text-[#778CA2] flex justify-between " >
                                         <p>{selectedSubmissionRow?.bid_type}</p>
-                                        <p>Submitted by <span className='text-[#00AAEC]'>{selectedSubmissionSubmittedBy?.first_name} {selectedSubmissionSubmittedBy?.last_name}</span> on {formatDateString(selectedSubmissionRow?.created_on)}</p>
+                                        <p>Submitted by <span className='text-[#00AAEC]'>{submissionSubmittedBy?.first_name} {submissionSubmittedBy?.last_name}</span> on {formatDateString(selectedSubmissionRow?.created_on)}</p>
                                     </div>
                                     <div className="bg-[#F8FAFB] px-6 py-8 flex flex-col gap-5">
                                         <p>{selectedSubmissionRow.description}</p>
@@ -1463,7 +1483,6 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
                                             onChange={(e) => setSubmissionReplyText(e.target.value)}
                                         ></textarea>
                                         <div className="flex justify-between">
-                                            <Image src="/man.jpeg" width={36} height={36} className='rounded-full object-cover' alt='user' />
                                             <button
                                                 className='text-white border border-[#26BADA] bg-[#26BADA] uppercase text-sm px-8 py-3 min-w-[200px] rounded-sm '
                                                 onClick={handleSubmissionReplySubmit}
@@ -1479,7 +1498,7 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
                                     <button className="text-white text-center bg-[#26BADA] py-3 uppercase mb-3 rounded-md border-0" onClick={handleChangeStatus} >Submit to customer</button>
                                     {/* } */}
                                     <button className="text-white text-center bg-[#26BADA] py-3 uppercase mb-3 rounded-md border-0">Request Revision</button>
-                                    <SubmissionDialog open={docDailog} handleClose={handleDocClose} dailogTitle={"Bid Submission"} onYesClick={()=>{}}/>
+                                    <SubmissionDialogRfx open={openSubmissionDailog} handleClose={handleCloseSubmissionDailog} setSubmissionAcknowledgement={setSubmissionAcknowledgement} apiBackendURL={apiBackendURL} tenantID={tenantID} login_user_id={login_user_id} bid_submission_id={selectedSubmissionRow.id} bidBubmissionRow={selectedSubmissionRow} handleChangeStatus={handleChangeStatus} />
                                 </div>
                                 <div className="border mb-3 rounded-md">
                                     <div className="bg-[#00000005] py-2 px-[14px] text-[#778CA2] " >Status <span className='text-black'>{selectedSubmissionRow?.status}</span></div>
@@ -1514,10 +1533,10 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
                                     </div>
                                     <div className="bg-[#F4F5F6] py-3 px-4 flex   items-center justify-between">
                                         <div className="flex flex-[3] bg-white border rounded-[30px] p-1 gap-2 items-center max-w-[60%] w-full">
-                                            <Image src='/man.jpeg' width={38} height={38} className="rounded-[100%] object-cover w-[38px] h-[38px]" alt='user' />
+                                            <Image src={bidSubAssignto.user_profile_photo ? bidSubAssignto.user_profile_photo :'/avatar.jpg'} width={38} height={38} className="rounded-[100%] object-cover w-[38px] h-[38px]" alt='user' />
                                             <div className="">
-                                                <span className="text-sm leading-4">Michael Gates</span>
-                                                <span className="text-sm leading-4 text-[#778CA2] block">Account Manager</span>
+                                                <span className="text-sm leading-4">{bidSubAssignto?.first_name} {bidSubAssignto?.last_name}</span>
+                                                <span className="text-sm leading-4 text-[#778CA2] block">{bidSubAssignto.designation_title}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1544,11 +1563,17 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
 
                                 </div>
                                 <div className="border mb-3 rounded-md">
-                                    <div className="bg-[#00000005] py-2 px-[14px] text-[#778CA2] flex items-center gap-2 " >Proposal Acknowledgement{hideDocBtn && <FaCircleCheck className='text-green-500' />}</div>
-                                    <div className="bg-[#F4F5F6] py-6 flex items-center flex-col gap-3">
-                                        <p className="text-lg text-[#FFAB2B]">Due</p>
-                                        <p className="text-[#00AAEC] cursor-pointer" onClick={handleDocClickOpen}>{!hideDocBtn ? 'Upload Customer Bid Acknowldegement' : 'Documents Uploaded'}</p>
+                                    <div className="bg-[#00000005] py-2 px-[14px] text-[#778CA2] flex items-center gap-2 " >
+                                        Proposal Acknowledgement{submissionAcknowledgement.acknowledged && <FaCircleCheck className='text-green-500' />}
+                                        {submissionAcknowledgement.acknowledged ? formatDatetime(submissionAcknowledgement.acknowledged_on) : '' }
                                     </div>
+                                    {(submissionAcknowledgement && !submissionAcknowledgement.acknowledged) && <div className="bg-[#F4F5F6] py-6 flex items-center flex-col gap-3">
+                                        <p className="text-lg text-[#FFAB2B]">Due</p>
+                                        <p className="text-[#00AAEC] cursor-pointer" onClick={ handleSubmissionDailog}>{!hideDocBtn ? 'Upload Customer Bid Acknowldegement' : 'Documents Uploaded'}</p>
+                                    </div>}
+                                    {(submissionAcknowledgement && submissionAcknowledgement.acknowledged) && <div className="bg-[#F4F5F6] py-6 flex items-center flex-col gap-3">
+                                        <p className="text-lg text-[#FFAB2B]">Acknowledgement complete</p>
+                                    </div>}
                                 </div>
                             </div>
 
@@ -2272,7 +2297,17 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
                                             <span>{formatDateString(bidOrderSelectedRow?.acknowledgement_deadline)}</span>
                                         </div>
                                         <div>
-                                            <span ><GoAlertFill className='text-[#FF0000]' /></span> <br />
+                                            {
+                                                !bidOrderSelectedRow?.acknowledged
+                                                ?
+                                                <span ><GoAlertFill className='text-[#FF0000]' /></span> 
+                                                :
+                                                <>
+                                                    <span className='text-[#778CA2]'>Acknowldegement Date</span><br />
+                                                    {formatDateString(bidOrderSelectedRow?.acknowledged_on)}
+                                                </>
+                                            }
+                                            <br />
                                         </div>
                                     </div>
                                 </div>
@@ -2309,9 +2344,18 @@ const RfxDetail = ({ data, rfxRecord, stagesList, apiBackendURL, login_user_id, 
                                     {avtiveBidRequestBtn && <span className='flex items-center'><FaCircleCheck className='text-green-500 mr-2' /> {formatDatetime(rfxRecord.acknowledgement_submitted_on ? rfxRecord.acknowledgement_submitted_on : acknowledgementDate)}</span>}
                                 </div>
                                 <div className="bg-[#F4F5F6] py-6 flex items-center flex-col gap-3">
-                                    <p className={` text-lg ${avtiveBidRequestBtn ? `text-green-500 ` : 'text-[#FFAB2B]'}`}>{avtiveBidRequestBtn ? DailogtextValue : 'Awaited'}</p>
-                                    {!avtiveBidRequestBtn && <p className="text-[#00AAEC] cursor-pointer" onClick={handleClickOpen}>Upload RFx Acknowldegement</p>}
-                                    {avtiveBidRequestBtn && <p className="text-[#000000] text-center px-2">{rfxRecord.acknowledgement_comment ? rfxRecord.acknowledgement_comment : acknowledgementComment}</p>}
+                                    <p className={` text-lg ${avtiveBidRequestBtn ? `text-green-500 ` : 'text-[#FFAB2B]'}`}>{bidOrderSelectedRow?.acknowledged ? DailogtextValue : 'Awaited'}</p>
+                                    {!bidOrderSelectedRow?.acknowledged && <p className="text-[#00AAEC] cursor-pointer" onClick={handleClickOpen}>Upload RFx Acknowldegement</p>}
+                                    {bidOrderSelectedRow?.acknowledged && <p className="text-[#000000] text-center px-2">{bidOrderSelectedRow.acknowledgement_comment ? bidOrderSelectedRow.acknowledgement_comment : ''}</p>}
+                                    {bidOrderAcknowledgedBy &&
+                                        <div className="flex flex-[3] bg-white border rounded-[30px] p-1 gap-2 items-center max-w-[60%] w-full">
+                                            <Image src={bidOrderAcknowledgedBy.user_profile_photo ? bidOrderAcknowledgedBy.user_profile_photo : '/avatar.jpg'} alt={orderAssignedTo.first_name} width={38} height={38} className="rounded-[100%] object-cover w-[38px] h-[38px]" />
+                                            <div>
+                                                <span className="text-sm leading-4">{bidOrderAcknowledgedBy.first_name} {bidOrderAcknowledgedBy.last_name}</span>
+                                                <span class="text-sm leading-4 text-[#778CA2] block">{bidOrderAcknowledgedBy.designation_title}</span>
+                                            </div>
+                                        </div>
+                                    }
                                     <UploadDialog open={open} handleClose={handleClose} onYesClick={rfxYesClick} handleTextChange={handleDailogTextChange} textValue={DailogtextValue} rfxID={rfxRecord.rfx_id} tenantID={tenantID} apiBackendURL={apiBackendURL} />
                                 </div>
                             </div>

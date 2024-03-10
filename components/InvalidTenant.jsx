@@ -7,8 +7,6 @@ import Image from 'next/image'
 
 const InvalidTenant = (props) => {
 
-    console.log("tenantDomain tenantDomain",props.tenantDomain)
-
     const [active, setActive] = useState('hidden');
     const [hide, setHide] = useState('block');
     const [validTenant, setValidTenant] = useState(false);

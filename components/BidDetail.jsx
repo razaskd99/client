@@ -5,7 +5,7 @@ import Breadcrumbs from "@/components/Breadcrumbs"
 import Image from "next/image";
 import { BsThreeDots } from "react-icons/bs";
 import { VscChecklist } from "react-icons/vsc";
-import { FaBarsProgress, FaChevronLeft, FaArrowRight, FaRegCalendarMinus } from "react-icons/fa6";
+import { FaBarsProgress, FaChevronLeft, FaArrowRight, FaRegCalendarMinus, FaCircleCheck } from "react-icons/fa6";
 import Link from "next/link";
 import { LuRefreshCcw } from "react-icons/lu";
 import BidDialog from '@/components/BidRequestDailogue';
@@ -47,7 +47,10 @@ import { getBidClarificationRecordsByIdAction, getAllBidClarificationPostRecords
 import { createSubmissionPostAction, getSubmissionPostsBySubIdAction } from '@/app/api/manager/actions/bidsubmission';
 import { useStyleRegistry } from 'styled-jsx';
 import { GoAlertFill } from 'react-icons/go';
-import { getBidOrderByIdAction } from '@/app/api/manager/actions/bidorder';
+import { getBidOrderByIdAction, getBidOrderByRfxIdAction } from '@/app/api/manager/actions/bidorder';
+import { createBidSubmissionAckAction } from '@/app/api/manager/actions/bidsubmissionack';
+import { getBidSubmissionAckBySubIdAction } from '@/app/api/manager/actions/bidsubmissionack';
+import OrderAcknowledgement from './OrderAcknowledgement';
 
 
 
@@ -72,6 +75,7 @@ const BidDetail = ({
     apiBackendURL
 }) => {
     const [open, setOpen] = useState(false);
+    const [openOrderAck, setOpenOrderAck] = useState(false);
     const [openBid, setOpenBid] = useState(false);
     const [openContactAssign, setOpenContactAssign,] = useState(false);
     const [active, setActive] = useState('Overview');
@@ -146,6 +150,21 @@ const BidDetail = ({
     const [bidClarifPostRows, setBidClarifPostRows] = useState([])
     const [bidClarifSubmittedBy, setBidClarifSubmittedBy] = useState({})
 
+    const [bidRevisionRows, setBidRevisionRows] = useState(
+        bidClarifRec
+        .filter((calr) => calr.status == 'Revision')
+        .map((calr, index) => ({
+            id: calr.bid_clarification_id,
+            Title: calr.title,
+            Type: calr.type,
+            RefrenceNum: calr.reference_num,
+            IssuedDate: calr.issued_date,
+            DueDate: calr.due_date,
+            Status: calr.status
+        }))
+    );
+    const [showRevisionTable, setShowRevisionTable] = useState(true)
+    
     const [orderAssignedTo, setOrderAssignedTo] = useState({})
     const [bidOrderRows, setBidOrderRows] = useState(
         bidOrderRec.map((ord, index) => ({
@@ -161,6 +180,7 @@ const BidDetail = ({
     const [bidOrderSelectedContacts, setBidOrderSelectedContacts] = useState([])
     const [bidOrderAcknowledged, setBidOrderAcknowledged] = useState(false)
     const [DailogtextValue, setDailogtextValue] = useState('') 
+    const [orderTable, setOrderTable] = useState(true)
 
 
     function applyDynamicCSS(css) {
@@ -269,20 +289,16 @@ const BidDetail = ({
             }
         }
         // get clarification post
-        const r3 = await getAllRfxClarificationPostRecordsBy_ClarifId_Action(selectedClarificationRow.id)
+        const r3 = await getAllRfxClarificationPostRecordsBy_ClarifId_Action(selectedClarificationRow.rfx_clarification_id)
         setRfxClarPostRows(r3.returnData)
         // get clarif post documents
         const r4 = await GetRfxDocumentsAction(rfxRecord.rfx_id)
         setRfxClarPostDocsRows(r4.returnData)
 
-        /*const newMessage = {
-            text: replyMessage,
-            files: uploadedFiles
-        };
-        setMessages([...messages, newMessage]);
-        console.log(messages.file)
-        setReplyMessage('');*/
+       
+        setReplyMessage('');
         setUploadedFiles([]);
+        setSelectedFilesMain([]);
     };
     const handleFileUpload = (files) => {
         setUploadedFiles([...uploadedFiles, ...files]);
@@ -440,6 +456,9 @@ const BidDetail = ({
     const handleClose = () => {
         setOpen(false);
     };
+    const handleOrderAckClose = () => {
+        setOpenOrderAck(false);
+    };
     const handleClarificationDetail = () => {
         setClarificationDetail(true)
     }
@@ -504,6 +523,8 @@ const BidDetail = ({
     const [bidSubAssignto, setBidSubAssignto] = useState({})
     const [submissionReplyText, setSubmissionReplyText] = useState('')
     const [submissionPostList, setSubmissionPostList] = useState([])
+    const [submissionAcknowledgement, setSubmissionAcknowledgement] = useState({})
+    const [submissionSubmittedBy, setSubmissionSubmittedBy] = useState({})
 
     console.log("Sub:", submissionDataRows)
     console.log("HHH:", selectedContact)
@@ -555,9 +576,16 @@ const BidDetail = ({
         setFinalActiveSubmit(true)
 
     };
-    const rfxYesClick = () => {
+    // const rfxYesClick = () => {
+    //     handleChangeStatus(false);
+    //     setActiveBidRequestBtn(true);
+    // }
+    const OrderAckYesClick = () => {
         handleChangeStatus(false);
-        setActiveBidRequestBtn(true);
+        // setActiveBidRequestBtn(true);
+        setOpenOrderAck(false) //To close popup
+        console.log("YES CLICKED")
+
     }
     const handleDailogTextChange = (event) => {
         setDailogTextValue(event.target.value);
@@ -686,10 +714,47 @@ const BidDetail = ({
             if (r4.statusCode == 200) {
                 setSubmissionPostList(r4.returnData)
             }
+            // get submission acknowledgement
+            let r5 = await getBidSubmissionAckBySubIdAction(rowId)
+            let acknow = r5.returnData
+            setSubmissionAcknowledgement(acknow)
+            // get submission acknowledgement user
+            if(acknow?.acknowledged_by > 0) {
+                let r6 = await getUserById(acknow.acknowledged_by)
+                let user = r6.data
+                setSubmissionAcknowledgement({...acknow, user: user})
+            } 
+            // get submission submitted_by user
+            let r7= await getUserById(targetSubmission.submitted_by)
+            setSubmissionSubmittedBy(r7.data)
+                  
+            
         }
         if (active == 'Bid Clarifications') {
             setShowBidClarificationDetial(true)
             setBidClarifSubmittedBy({})
+            // get bid clarif
+            const r0 = await getBidClarificationRecordsByIdAction(rowId)
+            const assigned_to = r0.returnData.assigned_to
+            const submitted_by = r0.returnData.submitted_by
+            setBidClarifSelectedRow(r0.returnData)
+            // get documents for bid clarif
+            const r1 = await GetRfxDocumentsBy_RfxID_Key_Action(rfxRecord.rfx_id, 'bid-clarifications-' + rowId)
+            setBidClarifSelectedDocuments(r1.returnData)
+            // get assignto details
+            const r2 = await getUserById(assigned_to)
+            setBidClarificationAssignTo(r2.data)
+            // get bid clarif post
+            const r3 = await getAllBidClarificationPostRecordsBy_ClarifId_Action(rowId)
+            setBidClarifCommentList(r3.returnData)
+            // get bid calrif documents 
+            const r4 = await GetRfxDocumentsAction(rfxRecord.rfx_id)
+            setBidClarifPostDocsRows(r4.returnData)
+            // get submitted_by details
+            const r5 = await getUserById(submitted_by)
+            setBidClarifSubmittedBy(r5.data)
+        }
+        if (active == 'Bid Revision') {
             // get bid clarif
             const r0 = await getBidClarificationRecordsByIdAction(rowId)
             const assigned_to = r0.returnData.assigned_to
@@ -895,6 +960,8 @@ const BidDetail = ({
                 } else if (stages[currentIndex].stage == "Bid Clarifications") {
                     let c1 = await movetoNextBidStageAction(rfxRecord.rfx_id)
                 } else if (stages[currentIndex].stage == "Bid Revision") {
+                    let c1 = await movetoNextBidStageAction(rfxRecord.rfx_id)
+                } else if (stages[currentIndex].stage == "Order") {
                     let c1 = await movetoNextBidStageAction(rfxRecord.rfx_id)
                 }
 
@@ -1187,7 +1254,19 @@ const BidDetail = ({
             .catch((err) => console.log(err));
     }, []);
 
+    useEffect(() => {
+        if(active == 'Close') {
+            getBidOrderByRfxIdAction(rfxRecord.rfx_id)
+            .then((res) => {
+                setBidOrderSelectedRow(res.returnData[0])
+                console.log(res.returnData,'000000000000000000000000000')
+            })
+            .catch((err) => console.log(err));
+              
+        }
+    }, []);
 
+    
 
 
     const addSubmissionRow = async () => {
@@ -1197,7 +1276,8 @@ const BidDetail = ({
             alert("Please provide required fields.");
         }
 
-        const data = {
+        // create submission
+        let data = {
             "rfx_id": rfxRecord.rfx_id,
             "bid_type": submissionType,
             "bid_stage": submissionStage,
@@ -1206,9 +1286,21 @@ const BidDetail = ({
             "reference_number": submissionRefNumber,
             "description": submissionDescription,
             "status": "Open"
-        }
-        // create submission
+        }       
         let r1 = await createSubmissionAction(data)
+        // create submission acknowledgement
+        if(r1.statusCode == 200){
+            data = {
+                "bid_submission_id": r1.returnData.bid_submission_id,
+                "acknowledgement_deadline": "2024-03-08",
+                "acknowledgement_comment": "",
+                "acknowledged_by": 0,
+                "acknowledgement_date": "2024-03-08",
+                "acknowledged_on": "2024-03-08T22:01:31.596Z",
+                "acknowledged": false
+            }
+            let r11 = await createBidSubmissionAckAction(data)            
+        }               
         // upload documents
         if (r1.statusCode == 200 && selectedFilesMain.length > 0) {
             uploadFiles(selectedFilesMain, apiBackendURL, tenantID, rfxRecord.rfx_id, 'submission')
@@ -1261,6 +1353,7 @@ const BidDetail = ({
                 setSubmissionReplyText('')
             }
         }
+        setSubmissionReplyText('')
     }
 
     const [skipDialogOpen, setSkipDialogOpen] = useState(false);
@@ -1817,7 +1910,7 @@ const BidDetail = ({
                                 <div className="flex-[2]">
                                     <div>
                                         {/* <Typography variant="h6">Bid/No Bid</Typography>*/}
-                                        <div className="mt-4">
+                                        <div className="mt-4 dyn-template">
 
                                             <div dangerouslySetInnerHTML={{ __html: templateHTMLPrelim }} />
                                             {/*templateQuestions.map((option, index) => (
@@ -1987,7 +2080,7 @@ const BidDetail = ({
                                         <span>Back to list</span>
                                     </div>
                                     {/* <Typography variant="h6" className='text-[#778CA2]'>Export Compliance Check</Typography>*/}
-                                    <div className="mt-4">
+                                    <div className="mt-4 dyn-template">
 
                                         <div dangerouslySetInnerHTML={{ __html: templateHTMLDetailed }} />
 
@@ -2678,7 +2771,7 @@ const BidDetail = ({
                                 </div>
                                 <div>
                                     {/***<Typography variant="h6" className='text-[#778CA2]'>Bid Review Checklist</Typography>***/}
-                                    <div className="mt-4">
+                                    <div className="mt-4 dyn-template">
 
                                         <div dangerouslySetInnerHTML={{ __html: templateHTMLFinal }} />
 
@@ -3030,7 +3123,7 @@ const BidDetail = ({
                                 <div className="border mb-3 rounded-md ">
                                     <div className="bg-[#00000005] py-2 px-[14px] text-[#778CA2] flex justify-between " >
                                         <p>Details</p>
-                                        <p>Posted by <span className='text-[#00AAEC]'>Ravi K.</span> on {formatDatetime(selectedSubmissionRow.created_on)}</p>
+                                        <p>Posted by <span className='text-[#00AAEC]'>{submissionSubmittedBy.first_name} {submissionSubmittedBy.last_name}</span> on {formatDatetime(selectedSubmissionRow.created_on)}</p>
                                     </div>
                                     <div className="bg-[#F4F5F6] p-6 flex flex-col gap-5">
                                         <p>{selectedSubmissionRow.description}
@@ -3124,9 +3217,9 @@ const BidDetail = ({
                                         rows={4}
                                         className='p-3 w-full rounded-md mb-2 border border-[#E8ECEF] outline-none' placeholder='Reply with message'
                                         onChange={(e) => setSubmissionReplyText(e.target.value)}
+                                        value={submissionReplyText}
                                     ></textarea>
                                     <div className="flex justify-between">
-                                        <Image src="/man.jpeg" width={36} height={36} className='rounded-full object-cover' />
                                         <button
                                             className='text-white border border-[#26BADA] bg-[#26BADA] uppercase text-sm px-8 py-3 min-w-[200px] rounded-sm '
                                             onClick={handleSubmissionReplySubmit}
@@ -3204,6 +3297,27 @@ const BidDetail = ({
                                 </div>
 
                                 </div>*/}
+
+                                <div className="border mb-3 rounded-md">
+                                    <div className="bg-[#00000005] py-2 px-[14px] text-[#778CA2] flex items-center gap-2 " >
+                                        Proposal Acknowledgement{submissionAcknowledgement.acknowledged && <FaCircleCheck className='text-green-500' />} 
+                                        {submissionAcknowledgement.acknowledged ? formatDatetime(submissionAcknowledgement.acknowledged_on) : '' }
+                                    </div>
+                                    {(submissionAcknowledgement && !submissionAcknowledgement.acknowledged) && <div className="bg-[#F4F5F6] py-6 flex items-center flex-col gap-3">
+                                        <p className="text-lg text-[#FFAB2B]">Due</p>
+                                        <p className="text-[#00AAEC] cursor-pointer">Acknowledgement Pending</p>
+                                    </div>}
+                                    {(submissionAcknowledgement && submissionAcknowledgement.acknowledged) && <div className="bg-[#F4F5F6] py-6 flex items-center flex-col gap-3">
+                                        <p>{submissionAcknowledgement.acknowledgement_comment}</p>
+                                        <div className="flex flex-[3] bg-white border rounded-[30px] p-1 gap-2 items-center max-w-[60%] w-full ">
+                                            <Image src='/man.jpeg' width={38} height={38} className="rounded-[100%] object-cover w-[38px] h-[38px]" />
+                                            <div className="">
+                                                <span className="text-sm leading-4 w-8">{submissionAcknowledgement.user?.first_name} {submissionAcknowledgement.user?.last_name}</span>
+                                                <span className="text-sm leading-4 text-[#778CA2] block">{submissionAcknowledgement.user?.designation_title}</span>
+                                            </div>
+                                        </div>
+                                    </div>}
+                                </div>
 
                         </div>
                     </div>
@@ -3562,15 +3676,18 @@ const BidDetail = ({
                     </div>}
                 </div>}
 
-                {active === 'Bid Revision' && <div className="justify-between">
-                    <div className=" width-[100%] justify-between uppercase text-[#00AAEC] text-sm mb-4 px-3">
+                {(active === 'Bid Revision') && <div> 
+                    {showRevisionTable && <div className="justify-between">
+                        <div className=" width-[100%] justify-between uppercase text-[#00AAEC] text-sm mb-4 px-3">
+                            
+                            <button className=' flex items-center gap-1 upprecase uppercase max-w-[200px] rounded-md p-2 bg-[#00AAEC] text-white' onClick={handleChangeStatus} disabled={false} >Proceed <FaArrowRight /> </button>
+                        </div>
                         
-                        <button className=' flex items-center gap-1 upprecase uppercase max-w-[200px] rounded-md p-2 bg-[#00AAEC] text-white' onClick={handleChangeStatus} disabled={false} >Proceed <FaArrowRight /> </button>
-                    </div>
-                    
-                    <SearchTableNew rows={[]} handleRowClick={handleRowClick} NoRowsOverlay={NoRowsRevision} />
-                </div>}
+                        <SearchTableNew rows={bidRevisionRows} handleRowClick={handleRowClick} NoRowsOverlay={NoRowsRevision} />
+                        </div>}                                        
+                    </div>}
 
+                
 
                 {active === 'Order' && <div className='p-5'>
                     {showOrderTable &&
@@ -3690,13 +3807,13 @@ const BidDetail = ({
                             <div className="border mb-3 rounded-md">
                                 <div className="bg-[#00000005] py-2 px-[14px] text-[#778CA2] flex justify-between " >
                                     <span className="flex items-center gap-2">Order Acknowledgement</span>
-                                    {bidOrderAcknowledged && <span className='flex items-center'><FaCircleCheck className='text-green-500 mr-2' /> {formatDatetime(bidOrderSelectedRow.acknowledgement_submitted_on ? bidOrderSelectedRow.acknowledgement_submitted_on : acknowledgementDate)}</span>}
+                                    {bidOrderSelectedRow.acknowledged && <span className='flex items-center'><FaCircleCheck className='text-green-500 mr-2' /> {formatDatetime(bidOrderSelectedRow.acknowledged_on)}</span>}
                                 </div>
                                 <div className="bg-[#F4F5F6] py-6 flex items-center flex-col gap-3">
-                                    <p className={` text-lg ${bidOrderAcknowledged ? `text-green-500 ` : 'text-[#FFAB2B]'}`}>{bidOrderAcknowledged ? DailogtextValue : 'Awaited'}</p>
-                                    {!bidOrderAcknowledged && <p className="text-[#00AAEC] cursor-pointer" onClick={handleClickOpen}>Upload RFx Acknowldegement</p>}
-                                    {bidOrderAcknowledged && <p className="text-[#000000] text-center px-2">{bidOrderSelectedRow.acknowledgement_comment ? bidOrderSelectedRow.acknowledgement_comment : acknowledgementComment}</p>}
-                                    <UploadDialog open={open} handleClose={handleClose} onYesClick={rfxYesClick} handleTextChange={handleDailogTextChange} textValue={DailogtextValue} rfxID={bidOrderSelectedRow.rfx_id} tenantID={tenantID} apiBackendURL={apiBackendURL} />
+                                    <p className={` text-lg ${bidOrderAcknowledged ? `text-green-500 ` : 'text-[#FFAB2B]'}`}>{bidOrderSelectedRow?.acknowledged ? DailogtextValue : 'Awaited'}</p>
+                                    {!bidOrderSelectedRow?.acknowledged && <p className="text-[#00AAEC] cursor-pointer" onClick={()=>{setOpenOrderAck(true)}}>Upload RFx Acknowldegement</p>}
+                                    {bidOrderSelectedRow?.acknowledged && <p className="text-[#000000] text-center px-2">{bidOrderSelectedRow.acknowledgement_comment ? bidOrderSelectedRow.acknowledgement_comment : acknowledgementComment}</p>}
+                                    <OrderAcknowledgement open={openOrderAck} handleClose={handleOrderAckClose} onYesClick={OrderAckYesClick} handleTextChange={handleDailogTextChange} textValue={DailogtextValue} rfxID={bidOrderSelectedRow.rfx_id} tenantID={tenantID} apiBackendURL={apiBackendURL} login_user_id={login_user_id} dailogTitle={'Order Acknowledgement'} orderRow={bidOrderSelectedRow} bidOrderAcknowledgementRow={setBidOrderSelectedRow}/>
                                 </div>
                             </div>
                         </div>
@@ -3708,44 +3825,55 @@ const BidDetail = ({
                     {!showOrderDone && <div className="flex gap-4">
                         <div className="flex-[2] p-5">
                             <div className="grid grid-cols-2 gap-8">
-                                <TextField
-                                    label="Order Number"
-                                    id="outlined-basic"
-                                    value="PO4527334"
-                                    variant="outlined"
-                                    className="w-full max-w-[360px]"
-                                />
+                                <div className="text-black ">
+                                    <p className='text-[#778CA2] mb-1'>Bid Order Number</p>
+                                    <TextField
+                                        label=""
+                                        id="outlined-basic"
+                                        value={bidOrderSelectedRow?.bid_order_num}
+                                        variant="outlined"
+                                        className="w-full max-w-[360px]"
+                                    />
+                                </div>
 
                                 <div className="text-black ">
+                                    <p className='text-[#778CA2] mb-1'>Currency</p>
                                     <TextField
                                         id="outlined-basic"
-                                        label="Order Currency"
-                                        value="USD"
+                                        label=""
+                                        value={bidOrderSelectedRow?.currency}
                                         variant="outlined"
                                         className="w-full max-w-[360px]"
                                     />
                                 </div>
                                 <div className="text-black ">
+                                <p className='text-[#778CA2] mb-1'>Title</p>
                                     <TextField
                                         id="outlined-basic"
-                                        label="Order Title"
-                                        value="DRP Refinery Automation Contract"
+                                        label=""
+                                        value={bidOrderSelectedRow?.title}
                                         variant="outlined"
                                         className="w-full max-w-[360px]"
                                     />
                                 </div>
                                 <div className="text-black ">
+                                <p className='text-[#778CA2] mb-1'>Order Value</p>
                                     <TextField
                                         id="outlined-basic"
-                                        label="Order Value"
-                                        value="$ 1,231,401"
+                                        label=""
+                                        value={bidOrderSelectedRow?.order_value}
                                         variant="outlined"
                                         className="w-full max-w-[360px]"
                                     />
                                 </div>
                                 <div class="col-span-2 max-w-[80%]">
                                     <p className='text-[#778CA2] mb-1'>Description</p>
-                                    <textarea className='w-full border border-[#E8ECEF] outline-none p-2 rounded-md' placeholder='Description' value="Hi Chand, Transferring this order for DRP refinery Automation Project. I am enclosing all the necessar documents. If you have any questions, please do let us know." rows={4} ></textarea>
+                                    <textarea 
+                                        className='w-full border border-[#E8ECEF] outline-none p-2 rounded-md' 
+                                        placeholder='Description' 
+                                        value={bidOrderSelectedRow.description}
+                                        rows={4} 
+                                    ></textarea>
 
                                 </div>
 
@@ -3856,17 +3984,17 @@ const BidDetail = ({
                                 <div className="bg-[#F4FCFD] px-4 py-5 flex items-center justify-between ">
                                     <div>
                                         <span className="text-[#778CA2] block">Issue Date</span>
-                                        <span>20 June 2021</span>
+                                        <span>{formatDateString(bidOrderSelectedRow?.issued_date)}</span>
                                     </div>
                                     <div>
                                         <span className="text-[#778CA2] block">Due Date</span>
-                                        <span>20 July 2021</span>
+                                        <span>{formatDateString(bidOrderSelectedRow?.acknowledgement_deadline)}</span>
                                     </div>
                                 </div>
                                 <div className="border-b border-[#E8ECEF] w-[90%] m-auto"></div>
                                 <div className="bg-[#F4FCFD] px-4 py-5">
                                     <span className="text-[#778CA2] block">Order Acknowldegement Date</span>
-                                    <span>09 Aug 2021</span>
+                                    <span>{formatDateString(bidOrderSelectedRow?.acknowledgement_date)}</span>
                                 </div>
                             </div>
 

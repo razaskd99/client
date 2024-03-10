@@ -5,13 +5,12 @@ import Link from "next/link";
 import ListHeadElementsUsers from "./components/ListHeadElements";
 import DeleteAllUsersButton from "./components/DeleteAllUsersButton";
 
-
 // start for login check
-import getConfig from 'next/config'
-import { redirect } from 'next/navigation'
+import getConfig from "next/config";
+import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getFullDomainName } from '@/app/api/util/loginHandle';
-let isLogin = false
+import { getFullDomainName } from "@/app/api/util/loginHandle";
+let isLogin = false;
 // end for login check
 
 export default async function AdminPanelUsers() {
@@ -26,8 +25,8 @@ export default async function AdminPanelUsers() {
   let accessToken = "";
   let apiBackendURL = "";
   let tenantID = 0;
-  let isLogin = false
-  let homeURL = ""
+  let isLogin = false;
+  let homeURL = "";
   // get server side global store data
   if (serverRuntimeConfig) {
     // get api backend url
@@ -38,14 +37,13 @@ export default async function AdminPanelUsers() {
     isLogin = serverRuntimeConfig.IS_LOGIN;
 
     // start check login
-    let homeURL = getFullDomainName(headers)
-    isLogin = serverRuntimeConfig.IS_LOGIN
-    if (!isLogin) { redirect(homeURL + "login") }
+    let homeURL = getFullDomainName(headers);
+    isLogin = serverRuntimeConfig.IS_LOGIN;
+    if (!isLogin) {
+      redirect(homeURL + "login");
+    }
     // end check login
-
   }
-
-
 
   // call all tenant action
   let records = await getAllUserRecordsAction();
@@ -55,7 +53,6 @@ export default async function AdminPanelUsers() {
     { label: "Home", href: "/admin-panel" },
     { label: "Users", href: "/admin-panel/users" },
   ];
-
 
   return (
     <div className=" w-full">
@@ -130,15 +127,15 @@ export default async function AdminPanelUsers() {
                     </td>
                     <td>{new Date(item.last_login_at).toLocaleString()}</td>
                     <td>
-                      {item.active && item.verified && (
+                      {item.active && (
                         <span className="badge text-success">Active</span>
                       )}
-                      {!item.active && item.verified && (
+                      {!item.active && (
                         <span className="badge text-secondary">Inactive</span>
                       )}
-                      {!item.verified && (
+                      {/* {!item.verified && (
                         <span className="badge text-warning">Pending</span>
-                      )}
+                      )} */}
                     </td>
                     <td>
                       <UserListingButtons

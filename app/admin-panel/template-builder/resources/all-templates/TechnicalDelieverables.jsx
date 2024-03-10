@@ -38,7 +38,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container mx-auto px-4 py-2 custome-color-card mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <h1 class="text-xl font-bold text-black ">10 Summary</h1>
+                    <h1 class="text-xl font-md text-black ">10 Summary</h1>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -66,7 +66,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">Bill of Material</span>
+                    <span class="text-xl font-md text-black">Bill of Material</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -94,7 +94,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">MOU/Agreements Developments</span>
+                    <span class="text-xl font-md text-black">MOU/Agreements Developments</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -121,7 +121,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">Power & Heat Load Calculation</span>
+                    <span class="text-xl font-md text-black">Power & Heat Load Calculation</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -148,7 +148,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">Project Executon Plan</span>
+                    <span class="text-xl font-md text-black">Project Executon Plan</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -175,7 +175,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">Project Schedule</span>
+                    <span class="text-xl font-md text-black">Project Schedule</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -202,7 +202,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">RASCI Matrix</span>
+                    <span class="text-xl font-md text-black">RASCI Matrix</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -229,7 +229,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">Table of Content</span>
+                    <span class="text-xl font-md text-black">Table of Content</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">
@@ -256,7 +256,7 @@ export default function TechnicalDelieverables(editor) {
         <div class="container custome-color-card  mx-auto px-4 py-2  mt-1">
             <div class="flex flex-wrap -mx-2 justify-between">
                 <div class="w-1/2 md:w-1/2 px-2">
-                    <span class="text-xl font-bold text-black">Technical Compliance</span>
+                    <span class="text-xl font-md text-black">Technical Compliance</span>
                 </div>
                 <div class="w-1/2 md:w-1/2 px-2 flex justify-end">
                     <label class="relative inline-block w-14 h-8 cursor-pointer">

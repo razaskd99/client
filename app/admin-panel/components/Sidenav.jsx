@@ -48,7 +48,7 @@ export default async function SideNavAdminPanel(props) {
         <li class="menu-item">
           <Link
             href="javascript:void(0);"
-            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 "
+            class="menu-link no-underline menu-toggle text-white hover:bg-gray-300 font-normal "
           >
             <div data-i18n="Layouts">USERS</div>
           </Link>
@@ -92,7 +92,7 @@ export default async function SideNavAdminPanel(props) {
         <li class="menu-item">
           <Link
             href="javascript:void(0);"
-            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 "
+            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 font-normal "
           >
             <div data-i18n="Layouts">RFX PRE-REQUISITES</div>
           </Link>
@@ -144,7 +144,7 @@ export default async function SideNavAdminPanel(props) {
         <li class="menu-item">
           <Link
             href="javascript:void(0);"
-            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 "
+            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 font-normal "
           >
             <div data-i18n="Layouts">CUSTOMERS</div>
           </Link>
@@ -172,7 +172,7 @@ export default async function SideNavAdminPanel(props) {
         <li class="menu-item">
           <Link
             href="javascript:void(0);"
-            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 "
+            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 font-normal "
           >
             <div data-i18n="Layouts">STAGES</div>
           </Link>
@@ -200,7 +200,7 @@ export default async function SideNavAdminPanel(props) {
         <li class="menu-item">
           <Link
             href="javascript:void(0);"
-            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 "
+            class="menu-link no-underline menu-toggle text-white font-extrabold hover:bg-gray-300 font-normal "
           >
             <div data-i18n="Layouts">TEMPLATES</div>
           </Link>

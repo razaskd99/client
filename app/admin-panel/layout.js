@@ -39,7 +39,7 @@ export default function RootLayout({ children }) {
                 <title>{metadata.title}</title>
                 <meta name="description" content={metadata.description} />
             </head>
-            <body>
+            <body className={`${rubik.className} `}>
                 <SidebarProvider>
                     <div className='flex layout-wrapper layout-content-navbar'>
                         <div className="layout-container">
