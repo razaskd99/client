@@ -182,6 +182,9 @@ const BidDetail = ({
     const [DailogtextValue, setDailogtextValue] = useState('') 
     const [orderTable, setOrderTable] = useState(true)
 
+    const [closingOrderDetails, setClosingOrderDetails] = useState(bidOrderRec.length > 0 ? bidOrderRec[0] : {})
+    const [closingOrderDocvalt, setClosingOrderDocvalt] = useState([])
+
 
     function applyDynamicCSS(css) {
         useEffect(() => {
@@ -526,9 +529,7 @@ const BidDetail = ({
     const [submissionAcknowledgement, setSubmissionAcknowledgement] = useState({})
     const [submissionSubmittedBy, setSubmissionSubmittedBy] = useState({})
 
-    console.log("Sub:", submissionDataRows)
-    console.log("HHH:", selectedContact)
-
+   
 
     const handleReviewerDialogOpen = () => {
         setReviewerDialogOpen(true);
@@ -590,7 +591,7 @@ const BidDetail = ({
     const handleDailogTextChange = (event) => {
         setDailogTextValue(event.target.value);
     }
-    console.log(active, "Current-")
+
     const handleRowClick = async (rowId) => {
         setSelectedRowId(rowId) // row ID
         setshowDetailTempSelect(true)
@@ -963,14 +964,19 @@ const BidDetail = ({
                     let c1 = await movetoNextBidStageAction(rfxRecord.rfx_id)
                 } else if (stages[currentIndex].stage == "Order") {
                     let c1 = await movetoNextBidStageAction(rfxRecord.rfx_id)
+                } else if (stages[currentIndex].stage == "Close") {
+                    let c1 = await movetoNextBidStageAction(rfxRecord.rfx_id)
                 }
 
                 for (let i = currentIndex + 2; i < stages.length; i++) {
                     stages[i].status = 'pending';
                 }
             }
-            setStages([...stages]);
-            contentShow(stages[currentIndex + 1].stage, stages[currentIndex + 1].status);
+            
+            try{
+                setStages([...stages]);
+                contentShow(stages[currentIndex + 1].stage, stages[currentIndex + 1].status);
+            } catch {}
             // console.log(stages)
 
         }
@@ -1255,19 +1261,21 @@ const BidDetail = ({
     }, []);
 
     useEffect(() => {
-        if(active == 'Close') {
+        if(active === 'Close') {
+            // get bid order
             getBidOrderByRfxIdAction(rfxRecord.rfx_id)
             .then((res) => {
-                setBidOrderSelectedRow(res.returnData[0])
-                console.log(res.returnData,'000000000000000000000000000')
-            })
-            .catch((err) => console.log(err));
-              
+                setClosingOrderDetails(res.returnData[0])
+            }).catch((err) => console.log(err)); 
+            // get docs
+            GetRfxDocumentsAction(rfxRecord.rfx_id)
+            .then((res) => {
+                setClosingOrderDocvalt(res.returnData)
+            }).catch((err) => console.log(err));              
         }
     }, []);
 
     
-
 
     const addSubmissionRow = async () => {
         //const newRow = { id: finalRevrows.length + 1, checkbox: 'dddd.png', description: 'New Opportunity', crmId: 'newCrmId', customer: 'New Customer', issueDate: 'New Date', salePerson: 'New Salesperson', status: 'New Status', };
@@ -3830,7 +3838,7 @@ const BidDetail = ({
                                     <TextField
                                         label=""
                                         id="outlined-basic"
-                                        value={bidOrderSelectedRow?.bid_order_num}
+                                        value={closingOrderDetails?.bid_order_num}
                                         variant="outlined"
                                         className="w-full max-w-[360px]"
                                     />
@@ -3841,7 +3849,7 @@ const BidDetail = ({
                                     <TextField
                                         id="outlined-basic"
                                         label=""
-                                        value={bidOrderSelectedRow?.currency}
+                                        value={closingOrderDetails?.currency}
                                         variant="outlined"
                                         className="w-full max-w-[360px]"
                                     />
@@ -3851,7 +3859,7 @@ const BidDetail = ({
                                     <TextField
                                         id="outlined-basic"
                                         label=""
-                                        value={bidOrderSelectedRow?.title}
+                                        value={closingOrderDetails?.title}
                                         variant="outlined"
                                         className="w-full max-w-[360px]"
                                     />
@@ -3861,7 +3869,7 @@ const BidDetail = ({
                                     <TextField
                                         id="outlined-basic"
                                         label=""
-                                        value={bidOrderSelectedRow?.order_value}
+                                        value={closingOrderDetails?.order_value}
                                         variant="outlined"
                                         className="w-full max-w-[360px]"
                                     />
@@ -3871,7 +3879,7 @@ const BidDetail = ({
                                     <textarea 
                                         className='w-full border border-[#E8ECEF] outline-none p-2 rounded-md' 
                                         placeholder='Description' 
-                                        value={bidOrderSelectedRow.description}
+                                        value={closingOrderDetails?.description}
                                         rows={4} 
                                     ></textarea>
 
@@ -3881,36 +3889,57 @@ const BidDetail = ({
                             <p className='text-[#778CA2] my-2 text-lg'>Attached Documents</p>
                             <div className="my-4">
                                 <p className='text-[#778CA2] my-1 flex gap-1 items-center'>Purchase Order <IoMdAddCircleOutline /></p>
-                                <div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
-                                    <div className="flex items-center gap-4">
-                                        <FaRegFilePdf className='text-red-600' />
-                                        <span className=''>102345-CCL-01.xlxs</span>
-                                    </div>
-                                    <span className='text-[#98A9BC]'>182kb</span>
-                                    <span className='text-[#98A9BC]'>23 Jun 2020</span>
-                                    <div className="flex items-center gap-2 text-[#98A9BC]">
-                                        <MdOutlineModeEdit className='cursor-pointer' />
-                                        <RiDeleteBin6Line className='cursor-pointer' />
-                                        <BsThreeDots className='text-[#98A9BC]' />
-                                    </div>
-                                </div>
+                                {closingOrderDocvalt && 
+                                    closingOrderDocvalt
+                                    .filter(doc => doc.docvalt_key.includes("order"))
+                                    .map((doc, index) => (<div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
+                                            <div className="flex items-center gap-4">
+                                                {
+                                                    ['jpg', 'png', 'jpeg'].includes(doc.file_type)
+                                                        ?
+                                                        <FaRegFileImage className='text-[#00AAEC]' />
+                                                        :
+                                                        <FaRegFilePdf className='text-red-600' />
+                                                }
+                                                <span className=''>{doc.docvalt_filename}</span>
+                                            </div>
+                                            <span className='text-[#98A9BC]'>{doc.file_size}</span>
+                                            <span className='text-[#98A9BC]'>{formatDateString(doc.created_at)}</span>
+                                            <div className="flex items-center gap-2 text-[#98A9BC]">
+                                                <MdOutlineModeEdit className='cursor-pointer' />
+                                                <RiDeleteBin6Line className='cursor-pointer' />
+                                                <BsThreeDots className='text-[#98A9BC]' />
+                                            </div>
+                                        </div>
+                                    ))}
 
                             </div>
                             <div className="my-4">
                                 <p className='text-[#778CA2] my-1 flex gap-1 items-center'>Bid Documents <IoMdAddCircleOutline /></p>
-                                <div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
-                                    <div className="flex items-center gap-4">
-                                        <FaRegFilePdf className='text-red-600' />
-                                        <span className=''>102345-CCL-01.xlxs</span>
-                                    </div>
-                                    <span className='text-[#98A9BC]'>123kb</span>
-                                    <span className='text-[#98A9BC]'>23 Jun 2020</span>
-                                    <div className="flex items-center gap-2 text-[#98A9BC]">
-                                        <MdOutlineModeEdit className='cursor-pointer' />
-                                        <RiDeleteBin6Line className='cursor-pointer' />
-                                        <BsThreeDots className='text-[#98A9BC]' />
-                                    </div>
-                                </div>
+                                {closingOrderDocvalt && 
+                                    closingOrderDocvalt
+                                    .filter(doc => doc.docvalt_key.includes("bid-submission"))
+                                    .map((doc, index) => (<div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
+                                            <div className="flex items-center gap-4">
+                                                {
+                                                    ['jpg', 'png', 'jpeg'].includes(doc.file_type)
+                                                        ?
+                                                        <FaRegFileImage className='text-[#00AAEC]' />
+                                                        :
+                                                        <FaRegFilePdf className='text-red-600' />
+                                                }
+                                                <span className=''>{doc.docvalt_filename}</span>
+                                            </div>
+                                            <span className='text-[#98A9BC]'>{doc.file_size}</span>
+                                            <span className='text-[#98A9BC]'>{formatDateString(doc.created_at)}</span>
+                                            <div className="flex items-center gap-2 text-[#98A9BC]">
+                                                <MdOutlineModeEdit className='cursor-pointer' />
+                                                <RiDeleteBin6Line className='cursor-pointer' />
+                                                <BsThreeDots className='text-[#98A9BC]' />
+                                            </div>
+                                        </div>
+                                    ))}
+
                             </div>
                             <div className="my-4">
                                 <p className='text-[#778CA2] my-1 flex gap-1 items-center'>Suppliers Quotations<IoMdAddCircleOutline /></p>
@@ -3930,71 +3959,104 @@ const BidDetail = ({
                             </div>
                             <div className="my-4">
                                 <p className='text-[#778CA2] my-1 flex gap-1 items-center'>RFx Documents<IoMdAddCircleOutline /></p>
-                                <div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
-                                    <div className="flex items-center gap-4">
-                                        <FaRegFilePdf className='text-red-600' />
-                                        <span className=''>102345-CCL-01.xlxs</span>
-                                    </div>
-                                    <span className='text-[#98A9BC]'>123kb</span>
-                                    <span className='text-[#98A9BC]'>23 Jun 2020</span>
-                                    <div className="flex items-center gap-2 text-[#98A9BC]">
-                                        <MdOutlineModeEdit className='cursor-pointer' />
-                                        <RiDeleteBin6Line className='cursor-pointer' />
-                                        <BsThreeDots className='text-[#98A9BC]' />
-                                    </div>
-                                </div>
+                                {closingOrderDocvalt && 
+                                    closingOrderDocvalt
+                                    .filter(doc => doc.docvalt_key === 'rfx')
+                                    .map((doc, index) => (<div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
+                                            <div className="flex items-center gap-4">
+                                                {
+                                                    ['jpg', 'png', 'jpeg'].includes(doc.file_type)
+                                                        ?
+                                                        <FaRegFileImage className='text-[#00AAEC]' />
+                                                        :
+                                                        <FaRegFilePdf className='text-red-600' />
+                                                }
+                                                <span className=''>{doc.docvalt_filename}</span>
+                                            </div>
+                                            <span className='text-[#98A9BC]'>{doc.file_size}</span>
+                                            <span className='text-[#98A9BC]'>{formatDateString(doc.created_at)}</span>
+                                            <div className="flex items-center gap-2 text-[#98A9BC]">
+                                                <MdOutlineModeEdit className='cursor-pointer' />
+                                                <RiDeleteBin6Line className='cursor-pointer' />
+                                                <BsThreeDots className='text-[#98A9BC]' />
+                                            </div>
+                                        </div>
+                                    ))}
+
                             </div>
                             <div className="my-4">
                                 <p className='text-[#778CA2] my-1 flex gap-1 items-center'>RFx Clarifications<IoMdAddCircleOutline /></p>
-                                <div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
-                                    <div className="flex items-center gap-4">
-                                        <FaFileExcel className='text-[#20744A]' />
-                                        <span className=''>102345-CCL-01.xlxs</span>
-                                    </div>
-                                    <span className='text-[#98A9BC]'>123kb</span>
-                                    <span className='text-[#98A9BC]'>23 Jun 2020</span>
-                                    <div className="flex items-center gap-2 text-[#98A9BC]">
-                                        <MdOutlineModeEdit className='cursor-pointer' />
-                                        <RiDeleteBin6Line className='cursor-pointer' />
-                                        <BsThreeDots className='text-[#98A9BC]' />
-                                    </div>
-                                </div>
+                                {closingOrderDocvalt && 
+                                    closingOrderDocvalt
+                                    .filter(doc => doc.docvalt_key.includes("rfx-clarifications"))
+                                    .map((doc, index) => (<div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
+                                            <div className="flex items-center gap-4">
+                                                {
+                                                    ['jpg', 'png', 'jpeg'].includes(doc.file_type)
+                                                        ?
+                                                        <FaRegFileImage className='text-[#00AAEC]' />
+                                                        :
+                                                        <FaRegFilePdf className='text-red-600' />
+                                                }
+                                                <span className=''>{doc.docvalt_filename}</span>
+                                            </div>
+                                            <span className='text-[#98A9BC]'>{doc.file_size}</span>
+                                            <span className='text-[#98A9BC]'>{formatDateString(doc.created_at)}</span>
+                                            <div className="flex items-center gap-2 text-[#98A9BC]">
+                                                <MdOutlineModeEdit className='cursor-pointer' />
+                                                <RiDeleteBin6Line className='cursor-pointer' />
+                                                <BsThreeDots className='text-[#98A9BC]' />
+                                            </div>
+                                        </div>
+                                    ))}
+
                             </div>
                             <div className="my-4">
                                 <p className='text-[#778CA2] my-1 flex gap-1 items-center'>Bids Clarifications<IoMdAddCircleOutline /></p>
-                                <div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
-                                    <div className="flex items-center gap-4">
-                                        <FaRegFileImage className='text-[#20744A]' />
-                                        <span className=''>102345-CCL-01.xlxs</span>
-                                    </div>
-                                    <span className='text-[#98A9BC]'>123kb</span>
-                                    <span className='text-[#98A9BC]'>23 Jun 2020</span>
-                                    <div className="flex items-center gap-2 text-[#98A9BC]">
-                                        <MdOutlineModeEdit className='cursor-pointer' />
-                                        <RiDeleteBin6Line className='cursor-pointer' />
-                                        <BsThreeDots className='text-[#98A9BC]' />
-                                    </div>
-                                </div>
+                                {closingOrderDocvalt && 
+                                    closingOrderDocvalt
+                                    .filter(doc => doc.docvalt_key.includes("bid-clarifications"))
+                                    .map((doc, index) => (<div className=" shadow-sm flex items-center w-full p-2 justify-between mb-3 border-b border-[#babec2]" >
+                                            <div className="flex items-center gap-4">
+                                                {
+                                                    ['jpg', 'png', 'jpeg'].includes(doc.file_type)
+                                                        ?
+                                                        <FaRegFileImage className='text-[#00AAEC]' />
+                                                        :
+                                                        <FaRegFilePdf className='text-red-600' />
+                                                }
+                                                <span className=''>{doc.docvalt_filename}</span>
+                                            </div>
+                                            <span className='text-[#98A9BC]'>{doc.file_size}</span>
+                                            <span className='text-[#98A9BC]'>{formatDateString(doc.created_at)}</span>
+                                            <div className="flex items-center gap-2 text-[#98A9BC]">
+                                                <MdOutlineModeEdit className='cursor-pointer' />
+                                                <RiDeleteBin6Line className='cursor-pointer' />
+                                                <BsThreeDots className='text-[#98A9BC]' />
+                                            </div>
+                                        </div>
+                                    ))}
+
                             </div>
                         </div>
                         <div className="flex-[1] p-5">
-                            <button className="text-center  py-3 mt-[10px] mb-[18px] rounded-md border-0 uppercase w-full bg-[#26BADA] text-white" onClick={() => { setShowOrderDone(true) }}>Submit</button>
+                            <button className="text-center  py-3 mt-[10px] mb-[18px] rounded-md border-0 uppercase w-full bg-[#26BADA] text-white" onClick={() => { handleChangeStatus(); setShowOrderDone(true) }}>Submit</button>
                             <div className="border mt-[18px] mb-3 rounded-md">
                                 <div className="bg-[#00000005] py-2 px-[14px] " > Critical Dates</div>
                                 <div className="bg-[#F4FCFD] px-4 py-5 flex items-center justify-between ">
                                     <div>
                                         <span className="text-[#778CA2] block">Issue Date</span>
-                                        <span>{formatDateString(bidOrderSelectedRow?.issued_date)}</span>
+                                        <span>{formatDateString(closingOrderDetails?.issued_date)}</span>
                                     </div>
                                     <div>
                                         <span className="text-[#778CA2] block">Due Date</span>
-                                        <span>{formatDateString(bidOrderSelectedRow?.acknowledgement_deadline)}</span>
+                                        <span>{formatDateString(closingOrderDetails?.acknowledgement_deadline)}</span>
                                     </div>
                                 </div>
                                 <div className="border-b border-[#E8ECEF] w-[90%] m-auto"></div>
                                 <div className="bg-[#F4FCFD] px-4 py-5">
                                     <span className="text-[#778CA2] block">Order Acknowldegement Date</span>
-                                    <span>{formatDateString(bidOrderSelectedRow?.acknowledgement_date)}</span>
+                                    <span>{formatDateString(closingOrderDetails?.acknowledgement_date)}</span>
                                 </div>
                             </div>
 
